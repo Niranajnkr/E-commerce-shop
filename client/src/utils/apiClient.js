@@ -8,7 +8,7 @@ const apiClient = axios.create({
   },
 });
 
-// Response interceptor for handling token refresh
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
