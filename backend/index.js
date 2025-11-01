@@ -26,6 +26,7 @@ const allowedOrigins = [
   "https://e-commerce-shop-tal7.onrender.com",
   process.env.FRONTEND_URL
 ].filter(Boolean);
+<<<<<<< HEAD
 // Enhanced CORS configuration
 const corsOptions = {
   origin: function (origin, callback) {
@@ -44,6 +45,12 @@ const corsOptions = {
 
 // Middlewares
 app.use(cors(corsOptions));
+=======
+
+//middlewares
+app.use(cors({ origin: allowedOrigins, credentials: true }));
+app.use(cookieParser());
+>>>>>>> 89f6eab3e1c2c5dc30a28beb1a531d35c06f5479
 app.use(express.json());
 app.use(cookieParser());
 
