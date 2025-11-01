@@ -15,43 +15,63 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
+// Create axios instance with default config
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000',
-  withCredentials: true,
+  withCredentials: true, // Important for sending cookies with cross-site requests
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  // Important: This is needed for CORS with credentials
-  withCredentials: true,
-  // Add this to handle CORS properly
-  crossDomain: true,
-  // Add this to include credentials in CORS requests
-  credentials: 'include',
+  timeout: 10000, // 10 second timeout
 });
 
-// Add a request interceptor to include the token in every request
+// Request interceptor to add auth token to requests
 apiClient.interceptors.request.use(
   (config) => {
-    // You can add authorization headers here if needed
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // Log request for debugging
+    console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`, {
+      data: config.data,
+      params: config.params,
+      headers: config.headers,
+    });
+    
     return config;
   },
   (error) => {
+    console.error('[API] Request error:', error);
     return Promise.reject(error);
   }
 );
 
+// Response interceptor to handle token refresh
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Log successful responses for debugging
+    console.log(`[API] ${response.config.method?.toUpperCase()} ${response.config.url} success:`, {
+      status: response.status,
+      data: response.data,
+    });
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
+    
+    // Log error response for debugging
+    console.error('[API] Error:', {
+      url: originalRequest?.url,
+      status: error.response?.status,
+      data: error.response?.data,
+      config: {
+        method: originalRequest?.method,
+        data: originalRequest?.data,
+      },
+    });
 
-    // If error is due to expired token and we haven't tried to refresh yet
+    // Handle 401 Unauthorized errors (token expired)
     if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
       if (isRefreshing) {
         // If already refreshing, add to queue
         return new Promise((resolve, reject) => {
@@ -64,7 +84,6 @@ apiClient.interceptors.response.use(
           .catch((err) => Promise.reject(err));
       }
 
-      originalRequest._retry = true;
       isRefreshing = true;
 
       try {

@@ -135,22 +135,49 @@ export const loginUser = async (req, res) => {
 export const checkAuth = async (req, res) => {
   try {
     const userId = req.user;
+    console.log(`🔍 checkAuth - User ID from token: ${userId}`);
 
-    const user = await User.findById(userId).select("-password");
-    if (!user) {
-      return res
-        .status(404)
-        .json({ message: "User not found", success: false });
+    if (!userId) {
+      console.log('❌ No user ID found in request');
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Authentication required',
+        code: 'UNAUTHORIZED'
+      });
     }
-    res.status(200).json({
+
+    const user = await User.findById(userId).select("-password -refreshToken");
+    if (!user) {
+      console.log(`❌ User not found with ID: ${userId}`);
+      return res.status(404).json({ 
+        success: false,
+        message: 'User not found',
+        code: 'USER_NOT_FOUND'
+      });
+    }
+
+    console.log(`✅ User authenticated: ${user.email}`);
+    res.status(200).json({ 
       success: true,
-      user,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt
+      }
     });
   } catch (error) {
-    console.error("Error in checkAuth:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error('❌ Error in checkAuth:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'An error occurred while verifying authentication',
+      code: 'AUTH_VERIFICATION_FAILED',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
+
 // refresh token: /api/user/refresh-token
 export const refreshToken = async (req, res) => {
   try {

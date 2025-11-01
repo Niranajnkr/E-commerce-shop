@@ -2,50 +2,84 @@ import { verifyAccessToken } from "../utils/jwtUtils.js";
 
 const authUser = async (req, res, next) => {
   try {
-    const { accessToken } = req.cookies;
+    console.log('🔍 Auth middleware - Request headers:', req.headers);
+    console.log('🔍 Auth middleware - Cookies:', req.cookies);
     
-    console.log("🔍 Auth middleware - Cookies received:", Object.keys(req.cookies));
+    // Check for token in cookies first, then in Authorization header
+    let accessToken = req.cookies?.accessToken;
+    
+    // If not in cookies, check Authorization header
+    if (!accessToken && req.headers.authorization) {
+      const authHeader = req.headers.authorization;
+      if (authHeader.startsWith('Bearer ')) {
+        accessToken = authHeader.split(' ')[1];
+      }
+    }
     
     if (!accessToken) {
-      console.log("❌ No access token found in cookies");
+      console.log("❌ No access token found in cookies or Authorization header");
       return res.status(401).json({ 
-        message: "Access token not found. Please login.", 
+        message: "Authentication required. Please login.", 
         success: false,
         code: "NO_TOKEN"
       });
     }
 
-    // Verify access token
-    const decoded = verifyAccessToken(accessToken);
-    
-    // Verify token type
-    if (decoded.type !== "access") {
-      return res.status(401).json({ 
-        message: "Invalid token type", 
-        success: false,
-        code: "INVALID_TOKEN_TYPE"
-      });
-    }
+    try {
+      // Verify access token
+      const decoded = verifyAccessToken(accessToken);
+      
+      // Verify token type
+      if (decoded.type !== "access") {
+        console.log("❌ Invalid token type:", decoded.type);
+        return res.status(401).json({ 
+          message: "Invalid token type. Please login again.", 
+          success: false,
+          code: "INVALID_TOKEN_TYPE"
+        });
+      }
 
-    // Attach user ID to request
-    req.user = decoded.id;
-    next();
-  } catch (error) {
-    console.error("Error in authUser middleware:", error);
-    
-    // Check if token is expired
-    if (error.message.includes("expired")) {
+      // Attach user ID to request
+      req.user = decoded.id;
+      console.log(`✅ User authenticated: ${decoded.id}`);
+      next();
+    } catch (tokenError) {
+      console.error("❌ Token verification failed:", tokenError);
+      
+      // Handle specific JWT errors
+      if (tokenError.name === 'TokenExpiredError') {
+        return res.status(401).json({ 
+          message: "Your session has expired. Please login again.", 
+          success: false,
+          code: "TOKEN_EXPIRED"
+        });
+      }
+      
+      if (tokenError.name === 'JsonWebTokenError') {
+        return res.status(401).json({ 
+          message: "Invalid authentication token. Please login again.", 
+          success: false,
+          code: "INVALID_TOKEN"
+        });
+      }
+      
+      // For other token-related errors
       return res.status(401).json({ 
-        message: "Access token expired. Please refresh.", 
+        message: "Authentication failed. Please login again.", 
         success: false,
-        code: "TOKEN_EXPIRED"
+        code: "AUTH_FAILED",
+        error: process.env.NODE_ENV === 'development' ? tokenError.message : undefined
       });
     }
+  } catch (error) {
+    console.error("❌ Auth middleware error:", error);
     
-    return res.status(401).json({ 
-      message: "Invalid or malformed token", 
+    // For unexpected errors
+    res.status(500).json({ 
+      message: "An unexpected error occurred. Please try again.", 
       success: false,
-      code: "INVALID_TOKEN"
+      code: "SERVER_ERROR",
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
