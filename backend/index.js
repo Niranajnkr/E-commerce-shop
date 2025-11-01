@@ -23,11 +23,7 @@ await connectCloudinary();
 const allowedOrigins = [
   // Local development
   'http://localhost:5173',
-  'http://127.0.0.1:5173',
-  
-  // Production domains
-  'https://grocery-store-j1we.onrender.com',
-  'https://e-commerce-shop-tal7.onrender.com',
+  https://e-commerce-shop-zpnm.onrender.com/
   
   // Environment variables
   process.env.FRONTEND_URL,
