@@ -23,7 +23,7 @@ await connectCloudinary();
 const allowedOrigins = [
   // Local development
   'http://localhost:5173',
-  https://e-commerce-shop-zpnm.onrender.com/
+  https://e-commerce-shop-zpnm.onrender.com/,
   
   // Environment variables
   process.env.FRONTEND_URL,
