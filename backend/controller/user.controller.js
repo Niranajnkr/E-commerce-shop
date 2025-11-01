@@ -46,7 +46,11 @@ export const registerUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
   try {
-    console.log('Login request received:', { email: req.body.email });
+    console.log('Login request received:', { 
+      email: req.body.email,
+      origin: req.headers.origin,
+      userAgent: req.headers['user-agent']
+    });
     const { email, password } = req.body;
 
     // Validate input

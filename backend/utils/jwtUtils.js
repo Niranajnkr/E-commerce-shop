@@ -70,19 +70,17 @@ export const verifyRefreshToken = (token) => {
 export const getCookieOptions = (maxAge = 7 * 24 * 60 * 60 * 1000) => {
   const isProduction = process.env.NODE_ENV === 'production';
   
-  // For Render deployment, we need to set secure: true and sameSite: 'none'
+  // For production deployment (Render, Vercel, etc.)
   const options = {
     httpOnly: true,
-    secure: isProduction, // true in production, false in development
-    sameSite: isProduction ? 'none' : 'lax', // 'none' for cross-site in production
+    secure: isProduction, // true in production (HTTPS required), false in development
+    sameSite: isProduction ? 'none' : 'lax', // 'none' for cross-origin requests in production
     maxAge,
     path: '/',
   };
 
-  // Only set domain in production to avoid issues with localhost
-  if (isProduction) {
-    options.domain = '.onrender.com'; // Match your Render domain
-  }
+  // Don't set domain - let the browser handle it automatically
+  // This works for both same-origin and cross-origin deployments
 
   return options;
 };
