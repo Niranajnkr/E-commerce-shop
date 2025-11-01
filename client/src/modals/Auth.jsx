@@ -86,7 +86,9 @@ const Auth = () => {
         }
       } else {
         // Login using the loginUser function from context
+        console.log('🔐 Attempting login with:', { email });
         const result = await loginUser({ email, password });
+        console.log('🔐 Login result:', result);
         
         if (result && result.success) {
           toast.success("Login successful!");
@@ -98,17 +100,29 @@ const Auth = () => {
           setPassword("");
           setErrors({});
         } else {
-          toast.error(result?.message || "Login failed");
+          const errorMsg = result?.message || "Login failed - please check your credentials";
+          console.error('❌ Login failed:', errorMsg);
+          toast.error(errorMsg);
         }
       }
     } catch (error) {
-      console.error('Auth error:', error);
+      console.error('❌ Auth error caught:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      
       if (error.response?.data?.message) {
         toast.error(error.response.data.message);
+      } else if (error.response?.status === 401) {
+        toast.error("Invalid email or password");
+      } else if (error.response?.status === 500) {
+        toast.error("Server error - please try again later");
       } else if (error.message) {
         toast.error(error.message);
       } else {
-        toast.error("Network error. Please try again.");
+        toast.error("Network error. Please check your connection.");
       }
     } finally {
       setLoading(false);

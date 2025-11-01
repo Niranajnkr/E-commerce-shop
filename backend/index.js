@@ -75,6 +75,16 @@ app.use((req, res, next) => {
   next();
 });
 
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.json({
+    status: "OK",
+    environment: process.env.NODE_ENV,
+    timestamp: new Date().toISOString(),
+    allowedOrigins: allowedOrigins
+  });
+});
+
 // Api endpoints
 app.use("/images", express.static("uploads"));
 app.use("/api/user", userRoutes);
