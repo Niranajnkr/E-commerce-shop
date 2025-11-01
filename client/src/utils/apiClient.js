@@ -68,8 +68,14 @@ apiClient.interceptors.response.use(
       },
     });
 
-    // Handle 401 Unauthorized errors (token expired)
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Only attempt token refresh for specific error codes and not for refresh-token endpoint itself
+    const shouldRefresh = 
+      error.response?.status === 401 && 
+      error.response?.data?.code === "TOKEN_EXPIRED" &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes('/refresh-token');
+
+    if (shouldRefresh) {
       originalRequest._retry = true;
       
       if (isRefreshing) {
@@ -88,7 +94,7 @@ apiClient.interceptors.response.use(
 
       try {
         const { data } = await axios.post(
-          `${import.meta.env.VITE_BACKEND_URL}/api/user/refresh-token`,
+          `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/user/refresh-token`,
           {},
           { withCredentials: true }
         );
@@ -105,9 +111,10 @@ apiClient.interceptors.response.use(
           return apiClient(originalRequest);
         }
       } catch (refreshError) {
-        // If refresh token fails, redirect to login
+        // If refresh token fails, silently reject without redirect
+        // Let the user continue browsing as unauthenticated
         processQueue(refreshError, null);
-        window.location.href = '/login';
+        console.log('Token refresh failed - user not authenticated');
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

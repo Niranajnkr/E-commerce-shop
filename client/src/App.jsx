@@ -93,23 +93,16 @@ const App = () => {
           />
           
           {/* Seller Routes */}
-          <Route
-            path="/seller"
-            element={
-              isSeller ? (
-                <SellerLayout />
-              ) : (
-                <Navigate to="/seller/login" replace />
-              )
-            }
+          <Route path="/seller/login" element={!isSeller ? <SellerLogin /> : <Navigate to="/seller" replace />} />
+          
+          <Route 
+            path="/seller" 
+            element={isSeller ? <SellerLayout /> : <Navigate to="/seller/login" state={{ from: '/seller' }} replace />}
           >
-            <Route index element={isSeller ? <AddProduct /> : null} />
-            <Route
-              path="product-list"
-              element={isSeller ? <ProductList /> : null}
-            />
-            <Route path="orders" element={isSeller ? <Orders /> : null} />
-            <Route path="categories" element={isSeller ? <CategoryManagement /> : null} />
+            <Route index element={<AddProduct />} />
+            <Route path="product-list" element={<ProductList />} />
+            <Route path="orders" element={<Orders />} />
+            <Route path="categories" element={<CategoryManagement />} />
           </Route>
         </Routes>
       </div>

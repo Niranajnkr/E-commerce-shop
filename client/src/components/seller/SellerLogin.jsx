@@ -3,7 +3,7 @@ import { useAppContext } from "../../context/AppContext";
 import React, { useState, useEffect } from "react";
 
 const SellerLogin = () => {
-  const { isSeller, setIsSeller, navigate, apiClient } = useAppContext();
+  const { isSeller, setIsSeller, navigate, apiClient, fetchSeller } = useAppContext();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
@@ -51,23 +51,32 @@ const SellerLogin = () => {
     if (!validateForm()) return;
 
     setLoading(true);
+    setErrors({});
+    
     try {
-      const { data } = await apiClient.post("/api/seller/login", {
+      const response = await apiClient.post("/api/seller/login", {
         email,
         password,
+      }, {
+        withCredentials: true // Ensure cookies are sent with the request
       });
 
-      if (data.success) {
-        setIsSeller(true);
-        navigate("/seller");
-        toast.success(data.message);
+      if (response.data?.success) {
+        toast.success(response.data.message || 'Login successful');
+        
+        // Fetch seller authentication status to update context
+        // The useEffect will handle navigation when isSeller becomes true
+        await fetchSeller();
       } else {
-        setErrors({ server: data.message });
-        toast.error(data.message);
+        const errorMsg = response.data?.message || 'Login failed. Please try again.';
+        setErrors({ server: errorMsg });
+        toast.error(errorMsg);
       }
     } catch (error) {
       console.error("Login error:", error);
-      const errorMessage = error.response?.data?.message || "Login failed. Please try again.";
+      const errorMessage = error.response?.data?.message || 
+                         error.message || 
+                         "Login failed. Please try again.";
       setErrors({ server: errorMessage });
       toast.error(errorMessage);
     } finally {

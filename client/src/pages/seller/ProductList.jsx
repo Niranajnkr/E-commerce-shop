@@ -5,11 +5,11 @@ import { getImageUrl } from "../../utils/api";
 import toast from "react-hot-toast";
 
 const ProductList = () => {
-  const { products, fetchProducts, axios } = useAppContext();
+  const { products, fetchProducts, apiClient } = useAppContext();
 
   const toggleStock = async (id, inStock) => {
     try {
-      const { data } = await axios.post("/api/product/stock", { id, inStock });
+      const { data } = await apiClient.post("/api/product/stock", { id, inStock });
       if (data.success) {
         fetchProducts();
         toast.success(data.message);

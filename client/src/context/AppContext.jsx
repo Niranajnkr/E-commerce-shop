@@ -4,69 +4,6 @@ import { dummyProducts } from "../assets/assets";
 import toast from "react-hot-toast";
 import apiClient from "../utils/apiClient";
 
-// Global state for token refresh
-let isRefreshing = false;
-let failedQueue = [];
-
-export const processQueue = (error, token = null) => {
-  failedQueue.forEach(prom => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
-  });
-  failedQueue = [];
-};
-
-// Response interceptor to handle token expiration
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    // Check if error is due to expired access token
-    if (error.response?.status === 401 && 
-        error.response?.data?.code === "TOKEN_EXPIRED" && 
-        !originalRequest._retry) {
-      
-      if (isRefreshing) {
-        // If already refreshing, queue this request
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        }).then(() => {
-          return apiClient(originalRequest);
-        }).catch((err) => {
-          return Promise.reject(err);
-        });
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        // Attempt to refresh the token
-        await apiClient.post("/api/user/refresh-token");
-        processQueue(null);
-        isRefreshing = false;
-        
-        // Retry the original request
-        return apiClient(originalRequest);
-      } catch (refreshError) {
-        processQueue(refreshError, null);
-        isRefreshing = false;
-        
-        // If refresh fails, redirect to login
-        toast.error("Session expired. Please login again.");
-        window.location.href = "/";
-        return Promise.reject(refreshError);
-      }
-    }
-
-    return Promise.reject(error);
-  }
-);
-
 export const AppContext = createContext(null);
 
 export const AppContextProvider = ({ children }) => {
@@ -105,18 +42,57 @@ export const AppContextProvider = ({ children }) => {
     }
   };
 
+  // login user
+  const loginUser = async (credentials) => {
+    try {
+      console.log("Attempting login...");
+      const { data } = await apiClient.post("/api/user/login", credentials);
+      console.log("Login response:", data);
+      
+      if (data.success) {
+        // Fetch user data after successful login
+        await fetchUser();
+        return { success: true, message: data.message };
+      } else {
+        console.error("Login failed:", data.message);
+        return { success: false, message: data.message };
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || "Login failed"
+      };
+    }
+  };
+
   // fetch user auth status, user Data and cart items
   const fetchUser = async () => {
     try {
+      console.log("Fetching user data...");
       const { data } = await apiClient.get("/api/user/is-auth");
-      if (data.success) {
+      console.log("User data response:", data);
+      
+      if (data && data.success && data.user) {
         setUser(data.user);
-        setCartItems(data.user.cart);
+        // Safely handle cart data
+        const userCart = data.user.cart;
+        if (userCart && typeof userCart === 'object') {
+          setCartItems(userCart);
+        } else {
+          setCartItems({});
+        }
+        console.log("User data loaded successfully");
       } else {
-        toast.error(data.message);
+        console.log("No user data in response");
+        setUser(null);
+        setCartItems({});
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || "Failed to fetch user data");
+      // Silently handle auth errors - user is simply not logged in
+      console.log("User not authenticated:", error.message);
+      setUser(null);
+      setCartItems({});
     }
   };
 
@@ -127,10 +103,10 @@ export const AppContextProvider = ({ children }) => {
       if (data.success) {
         setProducts(data.products);
       } else {
-        toast.error(data.message);
+        console.log("Failed to fetch products:", data.message);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || "Failed to fetch products");
+      console.log("Failed to fetch products:", error.response?.data?.message || error.message);
     }
   };
   // add product to cart
@@ -216,12 +192,13 @@ export const AppContextProvider = ({ children }) => {
     const updateCart = async () => {
       try {
         const { data } = await apiClient.post("/api/cart/update", { cartItems });
-
+        // Silently update cart without showing errors to prevent refresh loops
         if (!data.success) {
-          toast.error(data.message);
+          console.log("Cart update failed:", data.message);
         }
       } catch (error) {
-        toast.error(error.response?.data?.message || error.message || "Failed to update cart");
+        // Silently handle cart update errors
+        console.log("Cart update error:", error.response?.data?.message || error.message);
       }
     };
 
@@ -249,6 +226,9 @@ export const AppContextProvider = ({ children }) => {
     totalCartAmount,
     apiClient,
     fetchProducts,
+    fetchSeller,
+    fetchUser,
+    loginUser,
     setCartItems,
   };
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

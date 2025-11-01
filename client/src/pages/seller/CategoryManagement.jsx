@@ -167,19 +167,13 @@ const CategoryManagement = () => {
   const handleToggleStatus = async (id) => {
     try {
       setLoading(true);
-      const response = await axios.patch(
-        `${backendUrl}/api/category/toggle/${id}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const { data } = await apiClient.patch(`/api/category/toggle/${id}`);
 
-      if (response.data.success) {
-        toast.success(response.data.message);
+      if (data.success) {
+        toast.success(data.message);
         fetchCategories();
+      } else {
+        toast.error(data.message);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to toggle category status");
@@ -290,7 +284,7 @@ const CategoryManagement = () => {
               </button>
             </div>
 
-            <form onSubmit={editMode ? handleUpdate : handleCreate}>
+            <form onSubmit={handleSubmit}>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">

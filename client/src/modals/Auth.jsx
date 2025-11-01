@@ -9,7 +9,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const { setShowUserLogin, setUser, axios, navigate } = useAppContext();
+  const { setShowUserLogin, setUser, apiClient, navigate, loginUser, fetchUser } = useAppContext();
 
   // Validation functions
   const validateEmail = (email) => {
@@ -67,37 +67,42 @@ const Auth = () => {
     setLoading(true);
     
     try {
-      const { data } = await axios.post(`/api/user/${state}`, {
-        name,
-        email,
-        password,
-      });
-      
-      if (data.success) {
-        if (state === "register") {
-          // After registration, redirect to login
+      if (state === "register") {
+        // Registration
+        const { data } = await apiClient.post('/api/user/register', {
+          name,
+          email,
+          password,
+        });
+        
+        if (data && data.success) {
           toast.success(data.message || "Registration successful! Please login to continue.");
           setState("login");
           setName("");
           setPassword("");
           setErrors({});
         } else {
-          // Login flow - set user and navigate
-          toast.success(data.message || "Login successful!");
-          setUser(data.user);
+          toast.error(data?.message || "Registration failed");
+        }
+      } else {
+        // Login using the loginUser function from context
+        const result = await loginUser({ email, password });
+        
+        if (result && result.success) {
+          toast.success("Login successful!");
           setShowUserLogin(false);
-          navigate("/");
           
           // Reset form
           setName("");
           setEmail("");
           setPassword("");
           setErrors({});
+        } else {
+          toast.error(result?.message || "Login failed");
         }
-      } else {
-        toast.error(data.message || "Something went wrong");
       }
     } catch (error) {
+      console.error('Auth error:', error);
       if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else if (error.message) {

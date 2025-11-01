@@ -3,7 +3,7 @@ import { assets } from "../../assets/assets";
 import { useAppContext } from "../../context/AppContext";
 import toast from "react-hot-toast";
 const SellerLayout = () => {
-  const { isSeller, setIsSeller, axios, navigate } = useAppContext();
+  const { isSeller, setIsSeller, apiClient, navigate } = useAppContext();
   const sidebarLinks = [
     { name: "Add Product", path: "/seller", icon: assets.add_icon },
     {
@@ -17,7 +17,7 @@ const SellerLayout = () => {
 
   const logout = async () => {
     try {
-      const { data } = await axios.get("/api/seller/logout");
+      const { data } = await apiClient.get("/api/seller/logout");
       if (data.success) {
         setIsSeller(false);
         toast.success("Logged out successfully");

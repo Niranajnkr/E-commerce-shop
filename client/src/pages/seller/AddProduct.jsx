@@ -3,7 +3,7 @@ import { useContext, useState } from "react";
 import { AppContext } from "../../context/AppContext";
 import toast from "react-hot-toast";
 const AddProduct = () => {
-  const { axios } = useContext(AppContext);
+  const { apiClient } = useContext(AppContext);
   const [files, setFiles] = useState([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -28,7 +28,7 @@ const AddProduct = () => {
         formData.append("image", files[i]);
       }
 
-      const { data } = await axios.post("/api/product/add-product", formData);
+      const { data } = await apiClient.post("/api/product/add-product", formData);
       if (data.success) {
         toast.success(data.message);
         setName("");

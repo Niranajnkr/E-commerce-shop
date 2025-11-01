@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { register } from '../../utils/auth';
+import { register } from '../../utils/auth.js';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -39,20 +39,25 @@ const Register = () => {
 
     try {
       setLoading(true);
+      console.log('Submitting registration...');
       const result = await register({ name, email, password });
+      console.log('Registration result:', result);
       
-      if (result.success) {
+      if (result && result.success) {
         navigate('/login', { 
           state: { 
             message: 'Registration successful! Please login to continue.' 
           } 
         });
       } else {
-        setError(result.message || 'Registration failed. Please try again.');
+        const errorMsg = result?.message || 'Registration failed. Please try again.';
+        console.error('Registration failed:', errorMsg);
+        setError(errorMsg);
       }
     } catch (err) {
-      console.error('Registration error:', err);
-      setError('An error occurred during registration. Please try again.');
+      console.error('Registration error caught:', err);
+      const errorMsg = err?.message || 'An error occurred during registration. Please try again.';
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }

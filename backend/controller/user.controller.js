@@ -164,6 +164,7 @@ export const checkAuth = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        cart: user.cartItems || {},
         createdAt: user.createdAt
       }
     });

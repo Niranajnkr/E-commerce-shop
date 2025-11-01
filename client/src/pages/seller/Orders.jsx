@@ -1,9 +1,9 @@
 import { useContext, useEffect, useState } from "react";
 import { useAppContext } from "../../context/AppContext";
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { getImageUrl } from "../../utils/api";
+import toast from "react-hot-toast";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -13,11 +13,11 @@ const Orders = () => {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [newStatus, setNewStatus] = useState("");
   const [statusNote, setStatusNote] = useState("");
-  const { axios } = useContext(AppContext);
+  const { apiClient } = useAppContext();
   
   const fetchOrders = async () => {
     try {
-      const { data } = await axios.get("/api/order/seller");
+      const { data } = await apiClient.get("/api/order/seller");
       
       if (data.success) {
         setOrders(data.orders);
@@ -47,7 +47,7 @@ const Orders = () => {
         note: statusNote
       });
 
-      const { data } = await axios.post("/api/order/update-status", {
+      const { data } = await apiClient.post("/api/order/update-status", {
         orderId: selectedOrder._id,
         status: newStatus,
         note: statusNote || undefined,
