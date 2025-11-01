@@ -46,55 +46,88 @@ export const registerUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
   try {
+    console.log('Login request received:', { email: req.body.email });
     const { email, password } = req.body;
 
+    // Validate input
     if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Please fill all the fields", success: false });
-    }
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res
-        .status(400)
-        .json({ message: "User does not exist", success: false });
+      console.log('Missing credentials');
+      return res.status(400).json({ 
+        success: false,
+        message: 'Please provide both email and password' 
+      });
     }
 
+    // Find user
+    const user = await User.findOne({ email }).select('+password');
+    if (!user) {
+      console.log('User not found:', email);
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid email or password' 
+      });
+    }
+
+    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res
-        .status(401)
-        .json({ message: "Invalid credentials", success: false });
+      console.log('Invalid password for user:', email);
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid email or password' 
+      });
     }
 
-    // Generate secure token pair
-    const { accessToken, refreshToken } = generateTokenPair(user._id);
+    try {
+      // Generate tokens
+      const { accessToken, refreshToken } = generateTokenPair(user._id);
+      
+      // Update user with refresh token
+      user.refreshToken = await bcrypt.hash(refreshToken, 10);
+      user.lastLogin = new Date();
+      await user.save();
 
-    // Store refresh token in database (hashed for security)
-    user.refreshToken = await bcrypt.hash(refreshToken, 10);
-    user.lastLogin = new Date();
-    await user.save();
+      // Set secure cookies
+      const accessTokenCookieOptions = getCookieOptions(15 * 60 * 1000); // 15 minutes
+      const refreshTokenCookieOptions = getCookieOptions(7 * 24 * 60 * 60 * 1000); // 7 days
+      
+      console.log('Setting cookies with options:', { 
+        accessTokenCookieOptions, 
+        refreshTokenCookieOptions 
+      });
 
-    // Set secure cookies
-    const cookieOptions = getCookieOptions(15 * 60 * 1000);
-    res.cookie("accessToken", accessToken, cookieOptions);
-    res.cookie("refreshToken", refreshToken, getCookieOptions(7 * 24 * 60 * 60 * 1000));
+      res.cookie('accessToken', accessToken, accessTokenCookieOptions);
+      res.cookie('refreshToken', refreshToken, refreshTokenCookieOptions);
 
-    console.log("✅ Tokens set successfully for user:", user.email);
-    console.log("Cookie options:", cookieOptions);
+      // Remove sensitive data before sending response
+      user.password = undefined;
+      user.refreshToken = undefined;
 
-    res.status(200).json({
-      message: "Logged in successfully",
-      success: true,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
-    });
+      console.log('Login successful for user:', user.email);
+      
+      res.status(200).json({
+        success: true,
+        message: 'Logged in successfully',
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        }
+      });
+    } catch (tokenError) {
+      console.error('Token generation error:', tokenError);
+      return res.status(500).json({
+        success: false,
+        message: 'Error generating authentication tokens'
+      });
+    }
   } catch (error) {
-    console.error("Error in loginUser:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error('Login error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'An error occurred during login. Please try again later.' 
+    });
   }
 };
 

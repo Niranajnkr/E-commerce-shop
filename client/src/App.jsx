@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import Products from "./pages/Products";
 import SingleProduct from "./pages/SingleProduct";
 import Home from "./pages/Home";
@@ -18,6 +18,9 @@ import AddProduct from "./pages/seller/AddProduct";
 import ProductList from "./pages/seller/ProductList";
 import Orders from "./pages/seller/Orders";
 import CategoryManagement from "./pages/seller/CategoryManagement";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import ProtectedRoute from "./components/ProtectedRoute";
 const App = () => {
   const isSellerPath = useLocation().pathname.includes("seller");
   const { showUserLogin, isSeller, isSellerLoading } = useAppContext();
@@ -42,21 +45,63 @@ const App = () => {
       {isSellerPath ? null : <Navbar />}
       {showUserLogin ? <Auth /> : null}
       <Toaster />
-      <div
-        className={`${isSellerPath ? "" : "px-6 md:px-16 lg:px-24 xl:px-10"}`}
-      >
+      <div className={`${isSellerPath ? "" : "px-6 md:px-16 lg:px-24 xl:px-10"}`}>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/products" element={<Products />} />
+          
+          {/* Protected Routes */}
+          <Route 
+            path="/cart" 
+            element={
+              <ProtectedRoute>
+                <Cart />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/my-orders" 
+            element={
+              <ProtectedRoute>
+                <MyOrders />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Public Routes */}
           <Route path="/products/:category" element={<ProductCategory />} />
           <Route path="/product/:category/:id" element={<SingleProduct />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/add-address" element={<AddAddress />} />
-          <Route path="/address" element={<Address />} />
-          <Route path="/my-orders" element={<MyOrders />} />
+          
+          {/* Protected Routes */}
+          <Route 
+            path="/add-address" 
+            element={
+              <ProtectedRoute>
+                <AddAddress />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/address" 
+            element={
+              <ProtectedRoute>
+                <Address />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Seller Routes */}
           <Route
             path="/seller"
-            element={isSeller ? <SellerLayout /> : <SellerLogin />}
+            element={
+              isSeller ? (
+                <SellerLayout />
+              ) : (
+                <Navigate to="/seller/login" replace />
+              )
+            }
           >
             <Route index element={isSeller ? <AddProduct /> : null} />
             <Route
