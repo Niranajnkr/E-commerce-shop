@@ -67,16 +67,24 @@ export const verifyRefreshToken = (token) => {
  * @param {number} maxAge - Cookie max age in milliseconds
  * @returns {object} Cookie options
  */
-export const getCookieOptions = (maxAge) => {
-  const isProduction = process.env.NODE_ENV === "production";
+export const getCookieOptions = (maxAge = 7 * 24 * 60 * 60 * 1000) => {
+  const isProduction = process.env.NODE_ENV === 'production';
   
-  return {
-    httpOnly: true, // Prevents XSS attacks
-    secure: isProduction, // HTTPS only in production
-    sameSite: isProduction ? "none" : "lax", // Use 'lax' in dev for better compatibility
-    maxAge: maxAge,
-    path: "/", // Cookie available for all routes
+  // For Render deployment, we need to set secure: true and sameSite: 'none'
+  const options = {
+    httpOnly: true,
+    secure: isProduction, // true in production, false in development
+    sameSite: isProduction ? 'none' : 'lax', // 'none' for cross-site in production
+    maxAge,
+    path: '/',
   };
+
+  // Only set domain in production to avoid issues with localhost
+  if (isProduction) {
+    options.domain = '.onrender.com'; // Match your Render domain
+  }
+
+  return options;
 };
 
 /**

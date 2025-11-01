@@ -19,7 +19,7 @@ import { connectCloudinary } from "./config/cloudinary.js";
 const app = express();
 
 await connectCloudinary();
-// Allow multiple origins with development support
+// CORS Configuration
 const allowedOrigins = [
   // Local development
   'http://localhost:5173',
@@ -31,11 +31,7 @@ const allowedOrigins = [
   
   // Environment variables
   process.env.FRONTEND_URL,
-  process.env.BACKEND_URL,
-  
-  // Common production patterns
-  /^\.?grocery-store\..+\.onrender\.com$/,
-  /^\.?e-commerce-shop\..+\.onrender\.com$/
+  process.env.BACKEND_URL
 ].filter(Boolean);
 
 // Enhanced CORS configuration with better logging

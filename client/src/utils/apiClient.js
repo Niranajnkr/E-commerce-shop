@@ -16,15 +16,34 @@ const processQueue = (error, token = null) => {
 };
 
 const apiClient = axios.create({
-  baseURL: window.location.hostname === 'localhost' 
-    ? 'http://localhost:5000' 
-    : 'https://e-commerce-shop-tal7.onrender.com',
+  baseURL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
+  // Important: This is needed for CORS with credentials
+  withCredentials: true,
+  // Add this to handle CORS properly
+  crossDomain: true,
+  // Add this to include credentials in CORS requests
+  credentials: 'include',
 });
 
+// Add a request interceptor to include the token in every request
+apiClient.interceptors.request.use(
+  (config) => {
+    // You can add authorization headers here if needed
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 apiClient.interceptors.response.use(
   (response) => response,
