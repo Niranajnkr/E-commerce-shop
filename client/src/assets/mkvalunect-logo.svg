@@ -1,0 +1,24 @@
+<svg width="300" height="80" viewBox="0 0 300 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- MK Shield Icon -->
+  <g transform="translate(10, 5)">
+    <!-- Shield Background -->
+    <path d="M25 5 L30 0 L35 5 L35 28 L30 35 L25 28 Z" fill="#3B82F6"/>
+    <path d="M25 5 L30 0 L35 5 L35 28 L30 35 L25 28 Z" stroke="#2563EB" stroke-width="1.5"/>
+    
+    <!-- Inner White Shape -->
+    <path d="M27 10 L30 7 L33 10 L33 24 L30 28 L27 24 Z" fill="white"/>
+    
+    <!-- Inner Blue Lightning -->
+    <path d="M28.5 13 L30 11 L31.5 13 L31.5 21 L30 24 L28.5 21 Z" fill="#3B82F6"/>
+  </g>
+  
+  <!-- MKValunect Text -->
+  <text x="50" y="35" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="bold" fill="#3B82F6" letter-spacing="-1">
+    MKValunect
+  </text>
+  
+  <!-- Tagline -->
+  <text x="50" y="55" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#6B7280" letter-spacing="0.5">
+    Connect with Value
+  </text>
+</svg>
