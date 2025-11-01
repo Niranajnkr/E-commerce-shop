@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useAppContext } from "../../context/AppContext";
-import axios from "axios";
-import toast from "react-hot-toast";
 import { getImageUrl } from "../../utils/api";
+import toast from "react-hot-toast";
 
 const CategoryManagement = () => {
+  const { apiClient } = useAppContext();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -18,16 +18,13 @@ const CategoryManagement = () => {
     image: null,
   });
 
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || "";
-  const token = localStorage.getItem("sellerToken");
-
   // Fetch all categories
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${backendUrl}/api/category/list`);
-      if (response.data.success) {
-        setCategories(response.data.categories);
+      const { data } = await apiClient.get("/api/category/list");
+      if (data.success) {
+        setCategories(data.categories);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to fetch categories");
@@ -48,7 +45,12 @@ const CategoryManagement = () => {
 
   // Handle image change
   const handleImageChange = (e) => {
-    setFormData({ ...formData, image: e.target.files[0] });
+    if (e.target.files && e.target.files[0]) {
+      setFormData({
+        ...formData,
+        image: e.target.files[0],
+      });
+    }
   };
 
   // Open modal for create
@@ -91,76 +93,50 @@ const CategoryManagement = () => {
   };
 
   // Create category
-  const handleCreate = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.text || !formData.path || !formData.image) {
-      toast.error("Please fill all fields and upload an image");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const data = new FormData();
-      data.append("text", formData.text);
-      data.append("path", formData.path);
-      data.append("bgColor", formData.bgColor);
-      data.append("image", formData.image);
-
-      const response = await axios.post(`${backendUrl}/api/category/create`, data, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.data.success) {
-        toast.success("Category created successfully");
-        fetchCategories();
-        closeModal();
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to create category");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Update category
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-
     if (!formData.text || !formData.path) {
-      toast.error("Please fill all required fields");
-      return;
+      return toast.error("Please fill in all required fields");
+    }
+
+    const data = new FormData();
+    data.append('text', formData.text);
+    data.append('path', formData.path);
+    data.append('bgColor', formData.bgColor);
+    if (formData.image) {
+      data.append('image', formData.image);
     }
 
     try {
       setLoading(true);
-      const data = new FormData();
-      data.append("text", formData.text);
-      data.append("path", formData.path);
-      data.append("bgColor", formData.bgColor);
-      if (formData.image) {
-        data.append("image", formData.image);
-      }
+      const { data: response } = editMode 
+        ? await apiClient.put(`/api/category/update/${currentCategory._id}`, data, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          })
+        : await apiClient.post("/api/category/create", data, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
 
-      const response = await axios.put(
-        `${backendUrl}/api/category/update/${currentCategory._id}`,
-        data,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.data.success) {
-        toast.success("Category updated successfully");
+      if (response.success) {
+        toast.success(response.message);
+        setShowModal(false);
+        setFormData({
+          text: "",
+          path: "",
+          bgColor: "#F0F5DE",
+          image: null,
+        });
         fetchCategories();
-        closeModal();
+      } else {
+        toast.error(response.message);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to update category");
+      toast.error(error.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -168,49 +144,17 @@ const CategoryManagement = () => {
 
   // Delete category
   const handleDelete = async (id) => {
-    const confirmDelete = await new Promise((resolve) => {
-      toast((t) => (
-        <div className="flex flex-col gap-3">
-          <p className="font-medium">Are you sure you want to delete this category?</p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => {
-                toast.dismiss(t.id);
-                resolve(true);
-              }}
-              className="flex-1 bg-red-600 text-white px-3 py-1.5 rounded text-sm font-medium"
-            >
-              Delete
-            </button>
-            <button
-              onClick={() => {
-                toast.dismiss(t.id);
-                resolve(false);
-              }}
-              className="flex-1 bg-gray-300 text-gray-800 px-3 py-1.5 rounded text-sm font-medium"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      ), { duration: Infinity });
-    });
-
-    if (!confirmDelete) {
-      return;
-    }
-
+    if (!window.confirm("Are you sure you want to delete this category?")) return;
+    
     try {
       setLoading(true);
-      const response = await axios.delete(`${backendUrl}/api/category/delete/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const { data } = await apiClient.delete(`/api/category/delete/${id}`);
 
-      if (response.data.success) {
-        toast.success("Category deleted successfully");
+      if (data.success) {
+        toast.success(data.message);
         fetchCategories();
+      } else {
+        toast.error(data.message);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to delete category");
