@@ -1,6 +1,7 @@
 import { useAppContext } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { getImageUrl } from "../utils/api";
 
 const ProductCard = ({ product }) => {
   const { addToCart, removeFromCart, cartItems, updateCartItem } = useAppContext();
@@ -35,7 +36,7 @@ const ProductCard = ({ product }) => {
         >
         <img
           className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-          src={`http://localhost:5000/images/${product.image[0]}`}
+          src={getImageUrl(`/images/${product.image[0]}`)}
           alt={product.name}
           />
         {/* Discount Badge */}

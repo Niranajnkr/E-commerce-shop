@@ -1,5 +1,8 @@
-import toast from "react-hot-toast";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext";
+import { getImageUrl } from "../../utils/api";
+import toast from "react-hot-toast";
 
 const ProductList = () => {
   const { products, fetchProducts, axios } = useAppContext();
@@ -33,7 +36,7 @@ const ProductList = () => {
               <div className="h-48 bg-white flex items-center justify-center p-4 relative">
                 <img
                   className="w-full h-full object-contain"
-                  src={`http://localhost:5000/images/${product.image[0]}`}
+                  src={getImageUrl(`/images/${product.image[0]}`)}
                   alt={product.name}
                 />
                 

@@ -1,6 +1,9 @@
 import { useContext, useEffect, useState } from "react";
-import { AppContext } from "../../context/AppContext";
-import toast from "react-hot-toast";
+import { useAppContext } from "../../context/AppContext";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { format } from "date-fns";
+import { getImageUrl } from "../../utils/api";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -215,7 +218,7 @@ const Orders = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <img
-                            src={`http://localhost:5000/images/${order.items[0].product.image[0]}`}
+                            src={getImageUrl(`/images/${order.items[0].product.image[0]}`)}
                             alt=""
                             className="w-10 h-10 rounded object-cover"
                           />

@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../context/AppContext";
 import toast from "react-hot-toast";
+import { getImageUrl } from "../utils/api";
 
 const MyOrders = () => {
   const [myOrders, setMyOrders] = useState([]);
@@ -175,7 +176,7 @@ const MyOrders = () => {
                         className="flex items-center gap-4 pb-4 border-b border-gray-100 last:border-0 last:pb-0"
                       >
                         <img
-                          src={`http://localhost:5000/images/${item.product.image[0]}`}
+                          src={getImageUrl(`/images/${item.product.image[0]}`)}
                           alt={item.product.name}
                           className="w-20 h-20 object-cover rounded-lg border border-gray-200"
                         />

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAppContext } from "../context/AppContext";
+import { getImageUrl } from "../utils/api";
 import axios from "axios";
 import toast from "react-hot-toast";
 
@@ -8,7 +9,7 @@ const Category = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || "";
 
   // Fetch categories from backend
   useEffect(() => {

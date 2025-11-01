@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useAppContext } from "../context/AppContext";
+import { Link, useNavigate } from "react-router-dom";
+import { getImageUrl } from "../utils/api";
 import toast from "react-hot-toast";
+
 const Cart = () => {
   const {
     products,
@@ -241,7 +244,7 @@ const Cart = () => {
                         >
                           <img
                             className="w-full h-full object-contain p-1"
-                            src={`http://localhost:5000/images/${product.image[0]}`}
+                            src={getImageUrl(`/images/${product.image[0]}`)}
                             alt={product.name}
                           />
                         </div>

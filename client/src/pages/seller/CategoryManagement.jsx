@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { useAppContext } from "../../context/AppContext";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { getImageUrl } from "../../utils/api";
 
 const CategoryManagement = () => {
   const [categories, setCategories] = useState([]);
@@ -16,7 +18,7 @@ const CategoryManagement = () => {
     image: null,
   });
 
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || "";
   const token = localStorage.getItem("sellerToken");
 
   // Fetch all categories

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import { Link, useParams } from "react-router-dom";
 import { assets } from "../assets/assets";
+import { getImageUrl } from "../utils/api";
 import ProductCard from "../components/ProductCard";
 const SingleProduct = () => {
   const { products, navigate, addToCart, updateCartItem } = useAppContext();
@@ -54,7 +55,7 @@ const SingleProduct = () => {
                   className="border max-w-24 border-gray-500/30 rounded overflow-hidden cursor-pointer"
                 >
                   <img
-                    src={`http://localhost:5000/images/${image}`}
+                    src={getImageUrl(`/images/${image}`)}
                     alt={`Thumbnail ${index + 1}`}
                   />
                 </div>
@@ -63,7 +64,7 @@ const SingleProduct = () => {
 
             <div className="border border-gray-500/30 max-w-100 rounded overflow-hidden">
               <img
-                src={`http://localhost:5000/images/${thumbnail}`}
+                src={getImageUrl(`/images/${thumbnail}`)}
                 alt="Selected product"
               />
             </div>
