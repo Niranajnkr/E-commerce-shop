@@ -26,10 +26,7 @@ const allowedOrigins = [
   "https://e-commerce-shop-tal7.onrender.com",
   process.env.FRONTEND_URL
 ].filter(Boolean);
-<<<<<<< HEAD
-=======
 
->>>>>>> d7c6be6
 //middlewares
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(cookieParser());
