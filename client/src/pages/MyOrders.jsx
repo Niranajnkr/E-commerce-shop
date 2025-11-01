@@ -7,18 +7,18 @@ const MyOrders = () => {
   const [myOrders, setMyOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showTrackingModal, setShowTrackingModal] = useState(false);
-  const { axios, user } = useContext(AppContext);
+  const { apiClient, user } = useContext(AppContext);
   
   const fetchOrders = async () => {
     try {
-      const { data } = await axios.get("/api/order/user");
+      const { data } = await apiClient.get("/api/order/user");
       if (data.success) {
         setMyOrders(data.orders);
       } else {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || error.message || "Failed to fetch orders");
     }
   };
 
@@ -28,7 +28,7 @@ const MyOrders = () => {
     }
     
     try {
-      const { data } = await axios.post("/api/order/cancel", {
+      const { data } = await apiClient.post("/api/order/cancel", {
         orderId,
         reason: "Cancelled by customer"
       });

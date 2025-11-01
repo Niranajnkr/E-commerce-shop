@@ -3,7 +3,7 @@ import { useAppContext } from "../../context/AppContext";
 import React, { useState, useEffect } from "react";
 
 const SellerLogin = () => {
-  const { isSeller, setIsSeller, navigate, axios } = useAppContext();
+  const { isSeller, setIsSeller, navigate, apiClient } = useAppContext();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
@@ -48,41 +48,28 @@ const SellerLogin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validate form
-    if (!validateForm()) {
-      toast.error("Please fix the errors in the form");
-      return;
-    }
+    if (!validateForm()) return;
 
     setLoading(true);
-
     try {
-      const { data } = await axios.post("/api/seller/login", {
+      const { data } = await apiClient.post("/api/seller/login", {
         email,
         password,
       });
-      
+
       if (data.success) {
-        toast.success("Seller login successful!");
         setIsSeller(true);
         navigate("/seller");
-        
-        // Reset form
-        setEmail("");
-        setPassword("");
-        setErrors({});
+        toast.success(data.message);
       } else {
-        toast.error(data.message || "Login failed");
+        setErrors({ server: data.message });
+        toast.error(data.message);
       }
     } catch (error) {
-      if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
-      } else if (error.message) {
-        toast.error(error.message);
-      } else {
-        toast.error("Network error. Please try again.");
-      }
+      console.error("Login error:", error);
+      const errorMessage = error.response?.data?.message || "Login failed. Please try again.";
+      setErrors({ server: errorMessage });
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

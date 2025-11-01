@@ -2,15 +2,13 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { dummyProducts } from "../assets/assets";
 import toast from "react-hot-toast";
-import axios from "axios";
-axios.defaults.withCredentials = true;
-axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
+import apiClient from "../utils/apiClient";
 
-// Setup axios interceptor for automatic token refresh
+// Global state for token refresh
 let isRefreshing = false;
 let failedQueue = [];
 
-const processQueue = (error, token = null) => {
+export const processQueue = (error, token = null) => {
   failedQueue.forEach(prom => {
     if (error) {
       prom.reject(error);
@@ -22,7 +20,7 @@ const processQueue = (error, token = null) => {
 };
 
 // Response interceptor to handle token expiration
-axios.interceptors.response.use(
+apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
@@ -37,7 +35,7 @@ axios.interceptors.response.use(
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         }).then(() => {
-          return axios(originalRequest);
+          return apiClient(originalRequest);
         }).catch((err) => {
           return Promise.reject(err);
         });
@@ -48,12 +46,12 @@ axios.interceptors.response.use(
 
       try {
         // Attempt to refresh the token
-        await axios.post("/api/user/refresh-token");
+        await apiClient.post("/api/user/refresh-token");
         processQueue(null);
         isRefreshing = false;
         
         // Retry the original request
-        return axios(originalRequest);
+        return apiClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
         isRefreshing = false;
@@ -85,7 +83,7 @@ export const AppContextProvider = ({ children }) => {
   const fetchSeller = async () => {
     try {
       setIsSellerLoading(true);
-      const { data } = await axios.get("/api/seller/is-auth");
+      const { data } = await apiClient.get("/api/seller/is-auth");
       if (data.success) {
         setIsSeller(true);
       } else {
@@ -107,10 +105,10 @@ export const AppContextProvider = ({ children }) => {
     }
   };
 
-  // fetch user auth status ,user Data and cart items
+  // fetch user auth status, user Data and cart items
   const fetchUser = async () => {
     try {
-      const { data } = await axios.get("/api/user/is-auth");
+      const { data } = await apiClient.get("/api/user/is-auth");
       if (data.success) {
         setUser(data.user);
         setCartItems(data.user.cart);
@@ -125,7 +123,7 @@ export const AppContextProvider = ({ children }) => {
   // fetch products
   const fetchProducts = async () => {
     try {
-      const { data } = await axios.get("/api/product/list");
+      const { data } = await apiClient.get("/api/product/list");
       if (data.success) {
         setProducts(data.products);
       } else {
@@ -217,7 +215,7 @@ export const AppContextProvider = ({ children }) => {
   useEffect(() => {
     const updateCart = async () => {
       try {
-        const { data } = await axios.post("/api/cart/update", { cartItems });
+        const { data } = await apiClient.post("/api/cart/update", { cartItems });
 
         if (!data.success) {
           toast.error(data.message);
@@ -230,7 +228,7 @@ export const AppContextProvider = ({ children }) => {
     if (user) {
       updateCart();
     }
-  }, [cartItems]);
+  }, [cartItems, user]);
   const value = {
     navigate,
     user,
@@ -249,7 +247,7 @@ export const AppContextProvider = ({ children }) => {
     setSearchQuery,
     cartCount,
     totalCartAmount,
-    axios,
+    apiClient,
     fetchProducts,
     setCartItems,
   };

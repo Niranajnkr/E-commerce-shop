@@ -14,7 +14,7 @@ const Cart = () => {
     setCartItems,
     removeFromCart,
     updateCartItem,
-    axios,
+    apiClient,
     user,
   } = useAppContext();
 
@@ -39,7 +39,7 @@ const Cart = () => {
 
   const getAddress = async () => {
     try {
-      const { data } = await axios.get("/api/address/get");
+      const { data } = await apiClient.get("/api/address/get");
       if (data.success) {
         setAddress(data.addresses);
         if (data.addresses.length > 0) {
@@ -87,7 +87,7 @@ const Cart = () => {
 
       // Place order with COD
       if (paymentOption === "COD") {
-        const { data } = await axios.post("/api/order/cod", {
+        const { data } = await apiClient.post("/api/order/cod", {
           items: orderItems,
           address: selectedAddress._id,
         });
@@ -108,7 +108,7 @@ const Cart = () => {
         }
 
         // Create Razorpay order
-        const { data } = await axios.post("/api/payment/create-order", {
+        const { data } = await apiClient.post("/api/payment/create-order", {
           items: orderItems,
           address: selectedAddress._id,
         });
@@ -128,7 +128,7 @@ const Cart = () => {
           handler: async function (response) {
             try {
               // Verify payment
-              const verifyData = await axios.post("/api/payment/verify", {
+              const verifyData = await apiClient.post("/api/payment/verify", {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
@@ -157,7 +157,7 @@ const Cart = () => {
           modal: {
             ondismiss: async function () {
               // Handle payment cancellation
-              await axios.post("/api/payment/failure", {
+              await apiClient.post("/api/payment/failure", {
                 orderDbId: data.orderDbId,
                 reason: "Payment cancelled by user",
               });
@@ -168,7 +168,7 @@ const Cart = () => {
 
         const razorpay = new window.Razorpay(options);
         razorpay.on("payment.failed", async function (response) {
-          await axios.post("/api/payment/failure", {
+          await apiClient.post("/api/payment/failure", {
             orderDbId: data.orderDbId,
             reason: response.error.description,
           });
