@@ -19,22 +19,47 @@ import { connectCloudinary } from "./config/cloudinary.js";
 const app = express();
 
 await connectCloudinary();
-// allow multiple origins
+// Allow multiple origins with development support
 const allowedOrigins = [
-  "http://localhost:5173",
-  "https://grocery-store-j1we.onrender.com",
-  "https://e-commerce-shop-tal7.onrender.com",
-  process.env.FRONTEND_URL
+  // Local development
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  
+  // Production domains
+  'https://grocery-store-j1we.onrender.com',
+  'https://e-commerce-shop-tal7.onrender.com',
+  
+  // Environment variables
+  process.env.FRONTEND_URL,
+  process.env.BACKEND_URL,
+  
+  // Common production patterns
+  /^\.?grocery-store\..+\.onrender\.com$/,
+  /^\.?e-commerce-shop\..+\.onrender\.com$/
 ].filter(Boolean);
 
-// Enhanced CORS configuration
+// Enhanced CORS configuration with better logging
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in allowedOrigins
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      if (typeof allowedOrigin === 'string') {
+        return origin === allowedOrigin;
+      } else if (allowedOrigin instanceof RegExp) {
+        return allowedOrigin.test(origin);
+      }
+      return false;
+    });
+    
+    if (isAllowed) {
       callback(null, true);
     } else {
-      console.log('Not allowed by CORS:', origin);
-      callback(new Error('Not allowed by CORS'));
+      console.warn('CORS blocked request from origin:', origin);
+      console.warn('Allowed origins:', allowedOrigins);
+      callback(new Error('Not allowed by CORS policy'));
     }
   },
   credentials: true,

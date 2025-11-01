@@ -1,7 +1,24 @@
 import axios from 'axios';
 
+// Global state for token refresh
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL,
+  baseURL: window.location.hostname === 'localhost' 
+    ? 'http://localhost:5000' 
+    : 'https://e-commerce-shop-tal7.onrender.com',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
