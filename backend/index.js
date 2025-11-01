@@ -20,7 +20,7 @@ const app = express();
 
 await connectCloudinary();
 // allow multiple origins
-const allowedOrigins = ["https://e-commerce-shop-tal7.onrender.com"];
+const allowedOrigins = ["https://grocery-store-j1we.onrender.com"];
 //middlewares
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(cookieParser());
