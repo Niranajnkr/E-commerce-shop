@@ -54,12 +54,15 @@ const SellerLogin = () => {
     setErrors({});
     
     try {
+      console.log('🔐 Seller login attempt:', { email });
       const response = await apiClient.post("/api/seller/login", {
         email,
         password,
       }, {
         withCredentials: true // Ensure cookies are sent with the request
       });
+
+      console.log('🔐 Seller login response:', response.data);
 
       if (response.data?.success) {
         toast.success(response.data.message || 'Login successful');
@@ -69,11 +72,17 @@ const SellerLogin = () => {
         await fetchSeller();
       } else {
         const errorMsg = response.data?.message || 'Login failed. Please try again.';
+        console.error('❌ Seller login failed:', errorMsg);
         setErrors({ server: errorMsg });
         toast.error(errorMsg);
       }
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("❌ Seller login error:", error);
+      console.error('Error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
       const errorMessage = error.response?.data?.message || 
                          error.message || 
                          "Login failed. Please try again.";
