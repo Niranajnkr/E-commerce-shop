@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 
 const ProductList = () => {
   const { products, fetchProducts, apiClient } = useAppContext();
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   const toggleStock = async (id, inStock) => {
     try {
@@ -17,7 +18,28 @@ const ProductList = () => {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.success(error.message);
+      toast.error(error.message);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      console.log('Attempting to delete product:', id);
+      const { data } = await apiClient.post("/api/product/delete", { id });
+      console.log('Delete response:', data);
+      
+      if (data.success) {
+        fetchProducts();
+        toast.success(data.message);
+        setDeleteConfirm(null);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      console.error('Error response:', error.response);
+      const errorMsg = error.response?.data?.message || error.message || "Failed to delete product";
+      toast.error(errorMsg);
     }
   };
   return (
@@ -109,11 +131,60 @@ const ProductList = () => {
                     <span className="dot absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-5 shadow-sm"></span>
                   </label>
                 </div>
+
+                {/* Delete Button */}
+                <button
+                  onClick={() => setDeleteConfirm(product._id)}
+                  className="w-full mt-3 bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-2 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete
+                </button>
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Delete Product</h3>
+                <p className="text-sm text-gray-500">This action cannot be undone</p>
+              </div>
+            </div>
+            
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete this product? All product data will be permanently removed.
+            </p>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(deleteConfirm)}
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

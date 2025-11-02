@@ -226,3 +226,50 @@ export const cancelOrder = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+// Auto-delete delivered orders older than 1 week
+export const cleanupOldDeliveredOrders = async () => {
+  try {
+    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    
+    const result = await Order.deleteMany({
+      status: "Delivered",
+      deliveredAt: { $lt: oneWeekAgo }
+    });
+
+    if (result.deletedCount > 0) {
+      console.log(`🗑️ Auto-cleanup: Deleted ${result.deletedCount} delivered orders older than 1 week`);
+    }
+    
+    return result.deletedCount;
+  } catch (error) {
+    console.error("Error in cleanup:", error);
+    return 0;
+  }
+};
+
+// Get seller orders with auto-cleanup: /api/order/seller
+export const getSellerOrders = async (req, res) => {
+  try {
+    // Run cleanup before fetching orders
+    await cleanupOldDeliveredOrders();
+    
+    // Fetch all orders (excluding old delivered ones that were just deleted)
+    const orders = await Order.find({})
+      .populate("items.product")
+      .populate("userId", "name email")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ 
+      success: true, 
+      orders,
+      message: "Orders fetched successfully"
+    });
+  } catch (error) {
+    console.error("Error fetching seller orders:", error);
+    res.status(500).json({ 
+      message: "Internal Server Error",
+      success: false 
+    });
+  }
+};

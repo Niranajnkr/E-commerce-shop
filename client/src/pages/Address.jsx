@@ -5,13 +5,11 @@ import toast from "react-hot-toast";
 
 const Address = () => {
   const [address, setAddress] = React.useState({
-    firstName: "",
-    lastName: "",
-    email: "",
+    name: "",
     street: "",
     city: "",
     state: "",
-    zipCode: "",
+    postalCode: "",
     country: "",
     phone: "",
   });
@@ -51,37 +49,14 @@ const Address = () => {
           onSubmit={submitHanlder}
           className="grid grid-cols-1 md:grid-cols-2 gap-4"
         >
-          <div>
-            <label className="block text-gray-600">First Name</label>
-            <input
-              type="text"
-              name="firstName"
-              value={address.firstName}
-              onChange={handleChange}
-              className="w-full p-2 border rounded-md"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-gray-600">Last Name</label>
-            <input
-              type="text"
-              name="lastName"
-              value={address.lastName}
-              onChange={handleChange}
-              className="w-full p-2 border rounded-md"
-              required
-            />
-          </div>
-
           <div className="col-span-2">
-            <label className="block text-gray-600">Email</label>
+            <label className="block text-gray-600">Full Name</label>
             <input
-              type="email"
-              name="email"
-              value={address.email}
+              type="text"
+              name="name"
+              value={address.name}
               onChange={handleChange}
+              placeholder="Enter your full name"
               className="w-full p-2 border rounded-md"
               required
             />
@@ -126,9 +101,9 @@ const Address = () => {
           <div>
             <label className="block text-gray-600">Zip Code</label>
             <input
-              type="number"
-              name="zipCode"
-              value={address.zipCode}
+              type="text"
+              name="postalCode"
+              value={address.postalCode}
               onChange={handleChange}
               className="w-full p-2 border rounded-md"
               required

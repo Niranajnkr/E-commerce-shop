@@ -82,3 +82,38 @@ export const changeStock = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+// delete product :/api/product/delete
+export const deleteProduct = async (req, res) => {
+  try {
+    const { id } = req.body;
+    
+    if (!id) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Product ID is required" 
+      });
+    }
+
+    const product = await Product.findByIdAndDelete(id);
+    
+    if (!product) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Product not found" 
+      });
+    }
+
+    res.status(200).json({ 
+      success: true, 
+      message: "Product deleted successfully" 
+    });
+  } catch (error) {
+    console.error("Error in deleteProduct:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Server error while deleting product",
+      error: error.message 
+    });
+  }
+};

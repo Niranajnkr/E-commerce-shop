@@ -15,6 +15,7 @@ import orderRoutes from "./routes/order.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
 import categoryRoutes from "./routes/category.routes.js";
 import { connectCloudinary } from "./config/cloudinary.js";
+import { cleanupOldDeliveredOrders } from "./controller/order.controller.js";
 
 const app = express();
 
@@ -97,4 +98,15 @@ app.listen(PORT, () => {
   connectDB();
   console.log(`Server is running on port ${PORT}`);
   console.log(`Razorpay configured: ${process.env.RAZORPAY_KEY_ID ? '✅' : '❌'}`);
+  
+  // Run cleanup on server start
+  cleanupOldDeliveredOrders();
+  
+  // Schedule cleanup to run every 24 hours
+  setInterval(() => {
+    console.log('🔄 Running scheduled cleanup...');
+    cleanupOldDeliveredOrders();
+  }, 24 * 60 * 60 * 1000); // 24 hours
+  
+  console.log('🗑️ Auto-cleanup scheduled: Delivered orders older than 1 week will be deleted automatically');
 });

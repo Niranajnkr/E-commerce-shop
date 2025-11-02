@@ -7,6 +7,7 @@ import {
   updateOrderStatus,
   getOrderById,
   cancelOrder,
+  getSellerOrders,
 } from "../controller/order.controller.js";
 import { authSeller } from "../middlewares/authSeller.js";
 
@@ -18,7 +19,7 @@ router.get("/user", authUser, getUserOrders);
 router.post("/cancel", authUser, cancelOrder);
 
 // Seller routes (must come before /:id to avoid conflicts)
-router.get("/seller", authSeller, getAllOrders);
+router.get("/seller", authSeller, getSellerOrders);
 router.post("/update-status", authSeller, updateOrderStatus);
 
 // Dynamic route (must be last)

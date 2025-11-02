@@ -175,23 +175,34 @@ const MyOrders = () => {
                         key={idx}
                         className="flex items-center gap-4 pb-4 border-b border-gray-100 last:border-0 last:pb-0"
                       >
-                        <img
-                          src={getImageUrl(`/images/${item.product.image[0]}`)}
-                          alt={item.product.name}
-                          className="w-20 h-20 object-cover rounded-lg border border-gray-200"
-                        />
+                        {item.product?.image?.[0] ? (
+                          <img
+                            src={getImageUrl(`/images/${item.product.image[0]}`)}
+                            alt={item.product.name}
+                            className="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                          />
+                        ) : (
+                          <div className="w-20 h-20 rounded-lg bg-gray-200 flex items-center justify-center border border-gray-200">
+                            <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                            </svg>
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
                           <h3 className="text-base font-semibold text-gray-900 truncate">
-                            {item.product.name}
+                            {item.product?.name || 'Product Deleted'}
                           </h3>
-                          <p className="text-sm text-gray-500">{item.product.category}</p>
+                          <p className="text-sm text-gray-500">{item.product?.category || 'N/A'}</p>
                           <p className="text-sm text-gray-600 mt-1">
                             Quantity: <span className="font-medium">{item.quantity}</span>
                           </p>
                         </div>
                         <div className="text-right">
                           <p className="text-lg font-bold text-gray-900">
-                            ₹{(item.product.offerPrice * item.quantity).toFixed(2)}
+                            {item.product?.offerPrice 
+                              ? `₹${(item.product.offerPrice * item.quantity).toFixed(2)}`
+                              : 'N/A'
+                            }
                           </p>
                         </div>
                       </div>

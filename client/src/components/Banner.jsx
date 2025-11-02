@@ -8,17 +8,17 @@ const Banner = () => {
   const slides = [
     {
       id: 1,
-      title: "Fresh Grocery",
-      subtitle: "& Daily Needs",
-      description: "Farm-fresh groceries and daily essentials delivered to your door. Quality products at unbeatable prices.",
-      image: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80",
-      bgGradient: "from-green-50 to-white",
-      titleColor: "text-green-600",
+      title: "Fresh Groceries",
+      subtitle: "Delivered Daily",
+      description: "Get farm-fresh vegetables, fruits, dairy products and daily essentials delivered to your doorstep. Shop smart, eat healthy!",
+      image: "https://images.unsplash.com/photo-1588964895597-cfccd6e2dbf9?w=800&q=80",
+      bgGradient: "from-green-50 to-emerald-50",
+      titleColor: "text-green-700",
       buttonColor: "bg-green-600 hover:bg-green-700",
       features: [
-        { icon: "check", text: "Free Delivery", color: "text-green-600" },
-        { icon: "calendar", text: "Same Day", color: "text-blue-600" },
-        { icon: "star", text: "Best Quality", color: "text-yellow-500" }
+        { icon: "check", text: "100% Fresh", color: "text-green-600" },
+        { icon: "calendar", text: "Same Day Delivery", color: "text-blue-600" },
+        { icon: "star", text: "Best Prices", color: "text-yellow-500" }
       ]
     },
     {
