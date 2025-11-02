@@ -4,7 +4,7 @@ import { useAppContext } from "../context/AppContext";
 import toast from "react-hot-toast";
 
 const AddAddress = () => {
-  const { axios } = useAppContext();
+  const { apiClient } = useAppContext();
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
@@ -29,7 +29,7 @@ const AddAddress = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await axios.post("/api/address/add", { address: formData });
+      const { data } = await apiClient.post("/api/address/add", { address: formData });
       if (data.success) {
         toast.success("Address added successfully!");
         navigate("/cart");

@@ -15,7 +15,7 @@ const Address = () => {
     country: "",
     phone: "",
   });
-  const { axios, user, navigate } = useContext(AppContext);
+  const { apiClient, user, navigate } = useContext(AppContext);
   const handleChange = (e) => {
     setAddress({ ...address, [e.target.name]: e.target.value });
   };
@@ -23,7 +23,7 @@ const Address = () => {
   const submitHanlder = async (e) => {
     try {
       e.preventDefault();
-      const { data } = await axios.post("/api/address/add", { address });
+      const { data } = await apiClient.post("/api/address/add", { address });
       console.log("data", data);
       if (data.success) {
         toast.success(data.message);
